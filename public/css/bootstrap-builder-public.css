@@ -1,0 +1,4 @@
+.bootstrap_builder_editbutton a:before {
+	content: "\f464";
+	font-family: dashicons;
+}

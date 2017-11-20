@@ -1,0 +1,52 @@
+This folder contains hacked versions of CodeIgniter files. The versions in this folder are based on CodeIgniter 2.0.2.
+
+Should you wish to adapt a future version of CI, you may wish to copy the original files from the CI release and
+modify them yourself.
+
+index.php (from ci root)
+========================
+
+1. Add the following lines at the top of the file:
+
+  // WARNING: This is not an original CI file
+
+  // backuping query string
+  $query_string = urlencode($_SERVER['QUERY_STRING']);
+
+  // destroying the $_GET array (but reconstructed when CI leaves)
+  $_GET = array();
+
+  // let's use CI a bit to recover our $_GET array
+  $_SERVER['PATH_INFO'] = '/cidip/recover_get_array/'.$query_string;  
+
+2. Change this line:
+
+  $system_path = 'system';
+
+To this:
+
+  $system_path = '..';
+
+3. Comment out this line:
+
+  //$application_folder = 'application';
+
+4. At the end of the file, change this:
+
+  require_once BASEPATH.'core/CodeIgniter'.EXT;
+
+To this:
+
+  require_once 'ci_mods/CodeIgniter'.EXT;  
+
+CodeIgniter.php (from ci/system/core)
+=====================================
+
+1. Add the following line at the top of the file:
+
+  // WARNING: This is not an original CI file
+
+2. Comment out this line:
+
+  //$OUT->_display();
+

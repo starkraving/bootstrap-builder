@@ -1,0 +1,2 @@
+	<menu ng-show="editor.editing === true && editor.elementID === column.id" ng-include="getPartial('ho_columnmenu.html')"></menu>
+	<div ng-click="editor.activate($event, column.id);" ng-attr-contenteditable="{{editor.editing && editor.elementID === column.id ? true : undefined}}" class="{{setClassFromContent(column.attributes)}}" style="{{setStyleFromContent(column.styles)}}" ng-bind-html="renderHTML(column.content)" data-column-id={{column.id}}></div>

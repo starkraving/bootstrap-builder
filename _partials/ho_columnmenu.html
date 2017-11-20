@@ -1,0 +1,5 @@
+
+						<li><input type="button" ng-click="editor.delete(column.id, $event);" data-toggle="tooltip" data-placement="left" data-trigger="hover" title="Delete this Element" class="btn-delete" /></li>
+						<li data-toggle="tooltip" data-placement="left" data-trigger="hover" title="Change Element Settings"><input type="button" data-toggle="modal" data-target="#elementConfig" class="btn-config" /></li>
+						<li ng-show="editor.elementIsNotLast(column.id)"><a href="javascript:void(0);" data-toggle="tooltip" data-placement="left" data-trigger="hover" title="Resize Element" class="btn-resize"></a></li>
+						<li data-toggle="tooltip" data-placement="left" data-trigger="hover" title="Add Content to Row"><input type="button" data-toggle="modal" data-target="#addContent" ng-click="changeGridType('column');" class="btn-add" /></li>
