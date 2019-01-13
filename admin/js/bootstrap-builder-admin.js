@@ -5,7 +5,7 @@
 		
 		var formTitleSection = $('#titlewrap');
 		var inputButton = $('#wp-admin-bar-boostrap-builder-adminbar a');
-		var inputPostID = $('input#post_ID')
+		var inputPostID = $('input#post_ID');
 
 		if ( formTitleSection && inputButton && inputPostID ) {
 			inputButton.click(function(evt){
@@ -29,7 +29,10 @@
 				evt.preventDefault();
 				evt.stopPropagation();
 			});
-			inputButton.attr('class', 'button button-primary button-large').attr('href', inputButton.attr('href')+inputPostID.val()).appendTo(formTitleSection);
+			inputButton
+				.attr('class', 'button button-primary button-large')
+				.attr('href', inputButton.attr('href')+inputPostID.val())
+				.appendTo(formTitleSection);
 		}
 	});
 

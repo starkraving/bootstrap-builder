@@ -5,7 +5,7 @@ if ( !function_exists('setSpanFromContent') ) {
 	function setSpanFromContent($column, $row) {
 		$strClass = '';
 		if ( isset($column['span']) && $column['span'] != 'auto' ) {
-			$strClass .= ' span' . $column['span'];
+			return 'col-md-' . $column['span'];
 		} else if ( count($row) > 1 ) {
 			$totalSpan = 12;
 			$totalColumns = count($row);
@@ -19,7 +19,7 @@ if ( !function_exists('setSpanFromContent') ) {
 			if ( $column['id'] === $row[$totalColumns-1]['id'] ) {
 				$thisSpan += ( $totalSpan - ( $thisSpan * $totalColumns ) );
 			}
-			$strClass .= ' col-md-' . $thisSpan;
+			return 'col-md-' . $thisSpan;
 		}
 		return $strClass;
 	}

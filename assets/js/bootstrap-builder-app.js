@@ -154,6 +154,11 @@ hoApp.controller('init', function($scope, $sce, $compile, $http, $httpParamSeria
 				$('#link_button').val(link_button);
 			})(jQuery);
 		},
+		'updateSpan': function(span) {
+			rowID = $scope.editor.rowID;
+			columnID = $scope.editor.columnID;
+			$scope.content[rowID][columnID].span = span;
+		},
 		'removeStyle': function(key) {
 			var rowID = $scope.editor.rowID;
 			var columnID = $scope.editor.columnID;
@@ -245,48 +250,58 @@ hoApp.controller('init', function($scope, $sce, $compile, $http, $httpParamSeria
 		return str;
 	};
 	$scope.setClassFromContent = function(columnAttrs) {
-		return strClass = ( 'class' in columnAttrs ) ? columnAttrs['class'] : '';
+		return ( 'class' in columnAttrs ) ? columnAttrs['class'] : '';
 	};
 	$scope.setSpanFromContent = function(elementID) {
 		var 	indexes = $scope.editor.findElement(elementID),
 				rowID = indexes[0],
 				columnID = indexes[1],
 				column = $scope.content[rowID][columnID];
-		var strClass = '';
-		if ( column.span != 'auto' ) {
-			strClass += ' span'+column.span;
+		var classes = [];
+		if ( column.span !== 'auto' && false === !isNaN(column.span) ) {
+			classes.push('col-md-' + column.span);
 		} else if ( $scope.content[rowID].length > 1 ) {
-			var totalSpan = 12;
-			var totalColumns = $scope.content[rowID].length;
-			for ( var c in $scope.content[rowID] ) {
-				if ( $scope.content[rowID].hasOwnProperty(c) && !isNaN($scope.content[rowID][c].span) ) {
-					totalSpan = totalSpan - $scope.content[rowID][c].span;
-					totalColumns = totalColumns - 1;
-				}
-			}
-			var thisSpan = Math.floor(totalSpan / totalColumns);
-			if ( columnID === $scope.content[rowID].length - 1 ) {
-				thisSpan += ( totalSpan - ( thisSpan * totalColumns ) );
-			}
-			strClass += ' col-md-'+thisSpan;
+			classes.push('col-md-' + $scope.getSpanFromContent(rowID, columnID));
 		}
-		return strClass;
+		return classes.join(' ');
+	};
+	$scope.getSpanFromContent = function(rowID, columnID) {
+		var totalSpan = 12;
+		var totalColumns = $scope.content[rowID].length;
+		var column = $scope.content[rowID][columnID];
+		if (column.span && false === isNaN(column.span)) {
+			return column.span;
+		}
+		for ( var c in $scope.content[rowID] ) {
+			if ( $scope.content[rowID].hasOwnProperty(c) && !isNaN($scope.content[rowID][c].span) ) {
+				totalSpan = totalSpan - $scope.content[rowID][c].span;
+				totalColumns = totalColumns - 1;
+			}
+		}
+		var thisSpan = Math.floor(totalSpan / totalColumns);
+		if ( columnID === $scope.content[rowID].length - 1 ) {
+			thisSpan += ( totalSpan - ( thisSpan * totalColumns ) );
+		}
+
+		return thisSpan;
 	};
 	$scope.renderHTML = function(content){
 		return $sce.trustAsHtml(content);
 	};
 	$scope.renderAttributes = function(attributes) {
-		str = '';
-		for ( key in attributes ) {
-			str += ' '+key+'="'+attributes[key]+'"';
+		var str = '';
+		for ( var key in attributes ) {
+			if (attributes.hasOwnProperty(key)) {
+				str += ' ' + key + '="' + attributes[key] + '"';
+			}
 		}
 		return str;
 	};
 	$scope.insert = function(type) {
 		var elementID = new Date().getTime();
-		if ( $scope.gridType == 'row' ) {
+		if ( $scope.gridType === 'row' ) {
 			$scope.content.push([{'id':elementID,'type':type.type,'attributes':type.attributes,'content':type.content,'span':'auto','styles':{}}]);
-		} else if ( 'duplicate' == type ) {
+		} else if ( 'duplicate' === type ) {
 			var column = $scope.content[$scope.editor.rowID][$scope.editor.columnID],
 				newColumn = {
 					'id': elementID,
@@ -296,11 +311,15 @@ hoApp.controller('init', function($scope, $sce, $compile, $http, $httpParamSeria
 					'span': 'auto',
 					'styles': {}
 				};
-				for ( key in column.attributes ) {
-					newColumn.attributes[key] = column.attributes[key];
+				for ( var attrKey in column.attributes ) {
+					if ( column.attributes.hasOwnProperty(attrKey) ) {
+						newColumn.attributes[attrKey] = column.attributes[attrKey];
+					}
 				}
-				for ( key in column.styles ) {
-					newColumn.styles[key] = column.styles[key];
+				for ( var styleKey in column.styles ) {
+					if ( column.styles.hasOwnProperty(styleKey) ) {
+						newColumn.styles[styleKey] = column.styles[styleKey];
+					}
 				}
 			$scope.content[$scope.editor.rowID].push(newColumn);
 		} else {
@@ -313,7 +332,7 @@ hoApp.controller('init', function($scope, $sce, $compile, $http, $httpParamSeria
 		var columnID = $scope.editor.columnID;
 		$scope.content[rowID][columnID].attributes.slides.push(slide);
 		jQuery('#ho_carousel_'+$scope.editor.elementID).carousel({
-		  interval:false // remove interval for manual sliding
+		  interval : false // remove interval for manual sliding
 		});
 		$scope.contentHasChanged = true;
 	};
@@ -500,6 +519,67 @@ hoApp.directive('contenteditable', function(){
 					jQuery(evt.target).addClass('selected');
 				}
 			});
+		}
+	};
+});
+hoApp.directive('btnResize', function(){
+	return {
+		restrict: 'C',
+		link: function(scope, targetElement, attrs) {
+			angular.element('body')
+				.bind('mousedown touchstart', function(evt){
+					if (evt.target !== targetElement[0])
+					{
+						return;
+					}
+					evt.preventDefault();
+					var tPageX,
+						objHandle = jQuery(targetElement),
+						objTarget = objHandle.parents('menu').first().parent(),
+						elementId = objTarget.children('[data-column-id]').first().data('columnId'),
+						element = scope.editor.findElement(elementId),
+						colSpan = scope.getSpanFromContent(element[0], element[1]),
+						colWidth = objTarget.parent().width() / 12,
+						newSpan = colSpan;
+
+					if ('touchstart' === evt.type)
+					{
+						var touchobj = evt.originalEvent.changedTouches[0];
+						tPageX = parseInt(touchobj.pageX, 10);
+					} else {
+						tPageX = evt.pageX;
+					}
+
+					jQuery('body').addClass('bootstrap-resizing').on('mousemove touchmove', function(evt) {
+						var xPageX;
+						// offset object to move input#slider-left & right
+						if ('touchmove' === evt.type) {
+							var touchobj = evt.originalEvent.changedTouches[0];
+							xPageX = parseInt(touchobj.pageX, 10);
+						} else {
+							xPageX = evt.pageX;
+						}
+						var offset_x = xPageX - tPageX;
+						var spanMod = Math.floor(offset_x / colWidth);
+						// floor bumps it down too quickly with negative resizes
+						if (0 > spanMod) {
+							spanMod++;
+						}
+						// apply the mod
+						if (colSpan + spanMod !== newSpan) {
+							newSpan = colSpan + spanMod;
+							scope.$apply(function(){
+								scope.editor.updateSpan(newSpan);
+							});
+						}
+					});
+				})
+				.bind('mouseup touchend', function(){
+					jQuery('body.bootstrap-resizing')
+						.removeClass('bootstrap-resizing')
+						.off('mousemove')
+						.off('touchmove');
+				});
 		}
 	};
 });

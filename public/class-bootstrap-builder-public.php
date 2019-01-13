@@ -109,7 +109,10 @@ class Bootstrap_Builder_Public {
 	}
 
 	public function add_editor_script() {
-		if ( current_user_can('administrator') && NULL !== ($post = get_queried_object()) && is_a($post, 'WP_Post') && $post->post_type == 'bootstrap-builder' ) {
+		if ( current_user_can('administrator') 
+			&& NULL !== ($post = get_queried_object()) 
+			&& is_a($post, 'WP_Post') 
+			&& $post->post_type == 'bootstrap-builder' ) {
 			if ( isset($_GET['mode']) && 'edit' == $_GET['mode'] ) {
 				wp_enqueue_media($post->ID);
 				wp_enqueue_style( $this->plugin_name, BOOTSTRAP_BUILDER_BASEURL . '/assets/css/bootstrap-builder-ui.css', array(), $this->version, 'all' );
